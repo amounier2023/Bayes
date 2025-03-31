@@ -32,6 +32,30 @@ avec $\bar{x}=22$ jours la moyenne des âges mesurés. Ici $\alpha_i$ et $\beta_
 \] 
 où $\alpha_c$ et $\beta_c$ sont les moyennes populationnelles (intercept moyen et pente moyenne) et $\sigma_{\alpha}^2$, $\sigma_{\beta}^2$ les variances inter-individuelles. Des lois a priori larges et peu informatives sont choisies pour les hyperparamètres: par exemple $\alpha_c$ et $\beta_c$ reçoivent des lois normales de variance élevée (ordre $10^6$), et les précisions $\tau_{\alpha}=1/\sigma_{\alpha}^2$, $\tau_{\beta}=1/\sigma_{\beta}^2$ ainsi que $\tau_c=1/\sigma_c^2$ reçoivent des lois Gamma($0.001,0.001$) (correspondant à des a priori quasi-plates sur les écarts-types).
 
+A partir de ce modèle on déduit la loi à posteriori des $\alpha_i$ :
+
+$$ \pi(\alpha_i | ...) \propto (\prod_{j} \pi(Y_{ij} | ...) \pi(\alpha_i)) \propto \mathcal{N}(\mu_{\alpha_i}, \sigma_{\alpha_i}^2) $$
+
+Avec,
+
+$$ \mu_{\alpha_i} = \frac{1}{\frac{1}{\sigma_{\alpha}^2} + \frac{n_j}{\sigma_{c}^2}}(\frac{\alpha_c}{\sigma_{\alpha}^2} + \frac{\sum_{j}e_{ij}}{\sigma_{c}^2}) , \sigma_{\alpha_i}^2 = (\frac{1}{\sigma_{\alpha}^2} + \frac{n_j}{\sigma_{c}^2})^{-1}$$
+
+et
+
+$$ e_{ij} = Y_{ij} - \beta_i(x_j - \bar{x})$$
+
+De même pour les $\beta_i$ :
+
+$$ \pi(\beta_i | ...) \propto \mathcal{N}(\mu_{\beta_i}, \sigma_{\beta_i}^2) $$
+
+Avec,
+
+$$ \mu_{\beta_i} = \frac{C\sigma_{\beta}^2 + \beta_c \sigma_{c}^2}{S^2 \sigma_{\beta}^2 + \sigma_{c}^2}, \sigma_{\beta_i}^2 = \frac{\sigma_{c}^2 \sigma_{\beta}^2}{S^2 \sigma_{\beta}^2 + \sigma_{c}^2}$$
+
+et
+
+$$ S^2 = \sum_{j}(x_j - \bar{x})^2, C =  \sum_{j}e_{ij}(x_j - \bar{x}), e_{ij} = Y_{ij} - \alpha_i$$
+
 Les données observées (Figure~\ref{fig:data}) révèlent une croissance globalement linéaire des poids, avec une variabilité notable entre rats. Après ajustement du modèle \textit{Rats} par MCMC, nous obtenons les estimations \emph{a posteriori} suivantes pour les paramètres populationnels: le poids initial moyen extrapolé à la naissance (intercept moyen au temps $0$) est d'environ $\hat{\alpha}_0 \approx 107$~g (intervalle de crédibilité 95\% $\sim[99;114]$~g). La pente de croissance moyenne est $\hat{\beta}_c \approx 6.2$~g/jour (IC$_{95\%}\sim[6.0;6.4]$~g/jour), ce qui correspond à un gain d'environ 43~g par semaine en moyenne. On note également une forte hétérogénéité entre individus: l'écart-type \emph{a posteriori} des effets aléatoires d'intercept est de l'ordre de $10$~g, tandis que celui de la pente est d'environ $0.5$~g/jour. L'écart-type résiduel (variabilité intra-individu non expliquée) est estimé à $\sigma_c \approx 6.1$~g. Globalement, le modèle \textit{Rats} s'ajuste bien aux données et reproduit correctement les tendances de croissance individuelles moyennant ces effets aléatoires.
 
 \section{Modèle \textit{BiRats}: effets aléatoires corrélés}
@@ -43,6 +67,18 @@ y_{ij} \mid \alpha_i,\beta_i,\sigma_c \sim \mathcal{N}\!\big(\alpha_i + \beta_i 
 (\alpha_i,\beta_i)^\top \mid \boldsymbol{\mu}_\beta,\Sigma \sim \mathcal{N}_2\!\big(\boldsymbol{\mu}_\beta,\;\Sigma\big),
 \] 
 où $\boldsymbol{\mu}_\beta=(\alpha_c,\;\beta_c)^\top$ désigne le vecteur des moyennes populationnelles et $\Sigma$ la matrice de covariance des effets aléatoires. On peut paramétrer $\Sigma$ par les écarts-types $\sigma_{\alpha}$, $\sigma_{\beta}$ (déviations inter-rat pour $\alpha_i$ et $\beta_i$) et la corrélation $\rho$ entre $\alpha_i$ et $\beta_i$. Une corrélation $\rho>0$ signifierait que les rats initialement plus lourds tendent à croître plus rapidement que les rats plus légers (pentes plus élevées), tandis qu'une corrélation négative impliquerait l'inverse. Pour les hyperparamètres, nous utilisons des a priori peu informatifs analogues à ceux du modèle précédent: $\boldsymbol{\mu}_\beta$ reçoit une loi normale vague (indépendante sur $\alpha_c$ et $\beta_c$), et la matrice de précision $\Sigma^{-1}$ reçoit une loi de Wishart $\mathcal{W}(R,\;2)$ avec $2$ degrés de liberté (choix minimal pour une matrice $2\times2$) et une matrice d'échelle $R$ fixée de façon à représenter une information faible (ordre de grandeur initial approximatif des variances, reprenant le choix de \textit{Gelfand et al.}). Le paramètre de variance résiduelle $\sigma_c^2$ conserve la même a priori Gamma non informative que précédemment.
+
+A partir de ce modèle on déduit la loi à posteriori des $\beta_i$ :
+
+$$\pi(\beta_i | ...) \propto \mathcal{N}_2(\mu_i, \Sigma_i)$$
+
+Avec,
+
+$$ \mu_i = A_i^{-1}B_{i}^T, \Sigma_i = A_i $$
+
+où,
+
+$$ B = (1/\sigma_c^2)\sum_{j}Y_{ij}\tilde{X_j}^T + \mu_{\beta}^T \Sigma^{-1}, A = (1/\sigma_c^2)\sum_{j}\tilde{X_j}\tilde{X_j}^T + \Sigma^{-1}$$
 
 Les résultats d'inférence du modèle \textit{BiRats} montrent que les estimations des paramètres moyens $\alpha_c$ et $\beta_c$ restent très proches de celles du modèle \textit{Rats} (poids moyen de naissance $\approx 107$~g, pente moyenne $\approx 6.2$~g/jour), ce qui était attendu étant donné que la structure moyenne des données n'a pas changé. L'apport principal du modèle BiRats réside dans l'estimation de la corrélation \emph{a posteriori} entre intercept et pente. Cette corrélation est estimée autour de $\rho \approx 0$ (IC$_{95\%}$ largement couvrant 0), suggérant qu'il n'y a pas de liaison significative entre le poids initial d'un rat et son rythme de croissance linéaire ultérieur dans ce jeu de données. Autrement dit, les rats ayant une masse initiale plus élevée ne présentent pas une vitesse de croissance sensiblement différente de celle des rats plus légers, une fois prises en compte les incertitudes. 
 
